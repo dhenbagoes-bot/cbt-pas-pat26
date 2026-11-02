@@ -358,6 +358,7 @@ function TabImporSiswa({ toast, refreshData }: Pick<PageProps, 'toast' | 'refres
   const [baris, setBaris] = useState<BarisSiswaImpor[]>([]);
   const [parseLoading, setParseLoading] = useState(false);
   const [imporLoading, setImporLoading] = useState(false);
+  const [progresImpor, setProgresImpor] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
   const validCount = baris.filter((b) => b.valid).length;
 
@@ -391,16 +392,30 @@ function TabImporSiswa({ toast, refreshData }: Pick<PageProps, 'toast' | 'refres
     if (rows.length === 0) return toast('Tidak ada baris valid.', 'error');
     setImporLoading(true);
     try {
-      const r = await importSiswa(rows);
-      let pesan = `Impor selesai: ${r.imported} baru, ${r.updated} diperbarui.`;
-      if (r.errors.length) pesan += ` ${r.errors.length} baris error: ` + r.errors.slice(0, 3).map((e) => `baris ${e.baris}: ${e.pesan}`).join(' | ');
-      toast(pesan, r.errors.length ? 'error' : 'sukses');
+      // v1.1.4: kirim per batch 100 baris agar request tidak terlalu besar/lama
+      // (sebelumnya 1000 baris sekaligus -> "Failed to fetch").
+      const UKURAN_BATCH = 100;
+      let imported = 0;
+      let updated = 0;
+      const errors: { baris: number; pesan: string }[] = [];
+      for (let b = 0; b < rows.length; b += UKURAN_BATCH) {
+        const potong = rows.slice(b, b + UKURAN_BATCH);
+        setProgresImpor(`Mengimpor ${Math.min(b + UKURAN_BATCH, rows.length)}/${rows.length}…`);
+        const r = await importSiswa(potong);
+        imported += r.imported;
+        updated += r.updated;
+        for (const e of r.errors) errors.push({ baris: e.baris + b, pesan: e.pesan });
+      }
+      let pesan = `Impor selesai: ${imported} baru, ${updated} diperbarui.`;
+      if (errors.length) pesan += ` ${errors.length} baris error: ` + errors.slice(0, 3).map((e) => `baris ${e.baris}: ${e.pesan}`).join(' | ');
+      toast(pesan, errors.length ? 'error' : 'sukses');
       await refreshData();
       setBaris([]);
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Impor gagal.', 'error');
     } finally {
       setImporLoading(false);
+      setProgresImpor('');
     }
   };
 
@@ -465,7 +480,7 @@ function TabImporSiswa({ toast, refreshData }: Pick<PageProps, 'toast' | 'refres
           </TabelResponsif>
           <div className="mt-3 flex justify-end">
             <Button onClick={impor} loading={imporLoading} disabled={validCount === 0}>
-              Impor {validCount} Siswa
+              {progresImpor || `Impor ${validCount} Siswa`}
             </Button>
           </div>
         </Card>

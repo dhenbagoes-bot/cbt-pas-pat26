@@ -261,8 +261,8 @@ eq(sheetRows('Pengaturan').filter((x) => x[0] === 'namaSekolah').length, 1, 'kun
 
 console.log('\n[2] ping, doGet, aksi tak dikenal, LockService v1.1.0 (fine-grained)');
 r = post('ping');
-ok(r.success && r.data.version === '1.1.3' && !!r.data.waktu, 'ping -> version + waktu');
-eq(getRaw(), { success: true, data: { service: 'wwn-cbt-atm-80', version: '1.1.3' } }, 'doGet -> info service');
+ok(r.success && r.data.version === '1.1.4' && !!r.data.waktu, 'ping -> version + waktu');
+eq(getRaw(), { success: true, data: { service: 'wwn-cbt-atm-80', version: '1.1.4' } }, 'doGet -> info service');
 r = post('aksiTakDikenal');
 ok(!r.success && r.message === 'Aksi tidak dikenal: aksiTakDikenal', 'aksi tak dikenal -> message sesuai kontrak');
 // v1.1.0: kunci global dihapus — aksi BACA tidak boleh menyentuh LockService sama sekali
@@ -501,6 +501,18 @@ eq(r.data.errors.map((e) => e.baris), [1, 2, 3, 4], 'error di baris 1-4');
   eq(irfan[7], 'JJG-MTS', 'jenjangId tersimpan dari kelas');
   const kiki = urows.find((x) => x[6] === '9008');
   eq([kiki[7], kiki[8]], ['JJG-MTS', KELAS_8A], 'jenjang param dipakai untuk cocokkan kelas');
+}
+// v1.1.4: impor batch besar (150 baris) + duplikat NIS di DALAM batch yang sama
+{
+  const banyak = [];
+  for (let i = 0; i < 150; i++) banyak.push({ nama: 'Batch' + i, nis: 'B' + (20000 + i), kelas: '7A' });
+  banyak.push({ nama: 'BatchDobel', nis: 'B20000', kelas: '7A' }); // duplikat dalam batch -> update
+  r = post('importSiswa', { token: TOKEN_ADMIN, rows: banyak });
+  ok(r.success, 'importSiswa 151 baris sukses');
+  eq([r.data.imported, r.data.updated, r.data.errors.length], [150, 1, 0], 'imported=150, updated=1 (duplikat batch), errors=0');
+  const cek = sheetRows('Pengguna').filter((x) => String(x[6]).toLowerCase() === 'b20000');
+  eq(cek.length, 1, 'NIS B20000 hanya 1 baris');
+  eq(cek[0][1], 'BatchDobel', 'nama diperbarui oleh baris duplikat dalam batch');
 }
 r = post('login', { username: '9006', password: '9006' });
 ok(r.success, 'siswa impor bisa login dengan NIS/NIS');

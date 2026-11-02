@@ -101,6 +101,7 @@ function validUrl(apiUrl: string): boolean {
  */
 const AKSI_BOLEH_RETRY = new Set([
   'ping', 'login', 'getAllData', 'getSesi', 'mulaiSesi', 'batalkanSesi', 'submitJawaban',
+  'importSiswa', // idempotent via upsert NIS -> aman di-retry per batch
 ]);
 
 function tungguMs(ms: number): Promise<void> {

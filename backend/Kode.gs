@@ -63,7 +63,7 @@
  *    SEGERA ganti kata sandi setelah inisialisasi!
  */
 
-var APP_VERSION = '1.1.3';
+var APP_VERSION = '1.1.4';
 
 // ============================================================
 // KONFIGURASI SHEET (satu sumber kebenaran untuk nama & header)
@@ -1296,7 +1296,39 @@ function actionImportSiswa(ss, rows) {
     if (!Array.isArray(rows) || rows.length === 0) {
       return { success: false, message: 'Data baris kosong.' };
     }
+    // v1.1.4: baca sheet SEKALI di awal + tulis batch. Versi lama memanggil
+    // readRows() di setiap baris (O(n^2)) sehingga 1000 siswa butuh waktu
+    // bermenit-menit dan request putus ("Failed to fetch").
     var sheet = ss.getSheetByName(SHEET_PENGGUNA);
+    var semuaRows = readRows(sheet);
+    var petaNis = {};       // nisLower -> {rowNum, row}
+    var petaUsername = {};  // usernameLower -> id
+    for (var d = 0; d < semuaRows.length; d++) {
+      var nisL = asString(semuaRows[d][6]).toLowerCase();
+      if (nisL) petaNis[nisL] = { rowNum: d + 2, row: semuaRows[d] };
+      var unL = asString(semuaRows[d][2]).toLowerCase();
+      if (unL) petaUsername[unL] = asString(semuaRows[d][0]);
+    }
+    // Peta kelas: "namakelas" dan "namakelas||namajenjang" (lowercase, trim)
+    var petaKelas = {};
+    var jenRows = readRows(ss.getSheetByName(SHEET_JENJANG));
+    var petaJenjang = {};
+    for (var j = 0; j < jenRows.length; j++) {
+      petaJenjang[asString(jenRows[j][0])] = asString(jenRows[j][1]);
+    }
+    var kelasRows = readRows(ss.getSheetByName(SHEET_KELAS));
+    for (var k = 0; k < kelasRows.length; k++) {
+      var kNama = asString(kelasRows[k][2]).toLowerCase().trim();
+      var kJenId = asString(kelasRows[k][1]);
+      var kJenNama = asString(petaJenjang[kJenId]).toLowerCase().trim();
+      var infoK = { id: asString(kelasRows[k][0]), jenjangId: kJenId };
+      if (kNama && !petaKelas[kNama]) petaKelas[kNama] = infoK;
+      if (kNama && kJenNama && !petaKelas[kNama + '||' + kJenNama]) {
+        petaKelas[kNama + '||' + kJenNama] = infoK;
+      }
+    }
+
+    var antreBaru = []; // matrix 13 kolom -> SATU setValues di akhir
     for (var i = 0; i < rows.length; i++) {
       var baris = i + 1;
       var nama = asString(rows[i] && rows[i].nama);
@@ -1317,51 +1349,67 @@ function actionImportSiswa(ss, rows) {
       if (!nis) { hasil.errors.push({ baris: baris, pesan: 'NIS wajib diisi.' }); continue; }
       if (!namaKelas) { hasil.errors.push({ baris: baris, pesan: 'Kelas wajib diisi.' }); continue; }
 
-      var kelas = cariKelasByNama(ss, namaKelas, namaJenjang || '');
+      var kunciK = namaKelas.toLowerCase().trim();
+      var kunciKJ = kunciK + '||' + namaJenjang.toLowerCase().trim();
+      var kelas = petaKelas[kunciKJ] || petaKelas[kunciK];
       if (!kelas) {
         hasil.errors.push({ baris: baris, pesan: 'Kelas "' + namaKelas + '" tidak ditemukan.' });
         continue;
       }
 
       var usernameAkhir = username || nis;
-      var duplikat = cariPenggunaByUsername(ss, usernameAkhir, '');
-      // Duplikat ditentukan dari NIS (case-insensitive)
-      var adaNis = null;
-      var semuaRows = readRows(sheet);
-      for (var d = 0; d < semuaRows.length; d++) {
-        if (asString(semuaRows[d][6]).toLowerCase() === nis.toLowerCase()) {
-          adaNis = { rowNum: d + 2, row: semuaRows[d] };
-          break;
-        }
-      }
-      if (adaNis && duplikat && asString(duplikat.row[0]) !== asString(adaNis.row[0])) {
-        hasil.errors.push({ baris: baris, pesan: 'Username "' + usernameAkhir + '" sudah dipakai pengguna lain.' });
-        continue;
-      }
+      var nisKey = nis.toLowerCase();
+      var unKey = usernameAkhir.toLowerCase();
+      var adaNis = petaNis[nisKey] || null;
+      var idPemilikUsername = petaUsername[unKey];
 
       if (adaNis) {
         // Duplikat NIS -> UPDATE (nama/kelas/akun)
-        var rn = adaNis.rowNum;
-        sheet.getRange(rn, 2, 1, 2).setValues([[nama, usernameAkhir]]);
-        sheet.getRange(rn, 7, 1, 3).setValues([[nis, kelas.jenjangId, kelas.id]]);
-        if (noHP) sheet.getRange(rn, 13).setValue(noHP); // hanya timpa bila diisi
+        if (idPemilikUsername && idPemilikUsername !== asString(adaNis.row[0])) {
+          hasil.errors.push({ baris: baris, pesan: 'Username "' + usernameAkhir + '" sudah dipakai pengguna lain.' });
+          continue;
+        }
         if (password) {
           var saltU = Utilities.getUuid();
-          sheet.getRange(rn, 4, 1, 2).setValues([[hashPassword(password, saltU), saltU]]);
+          var hashU = hashPassword(password, saltU);
         }
+        if (adaNis.rowNum > 0) {
+          // Baris sudah ada di sheet -> update langsung
+          var rn = adaNis.rowNum;
+          sheet.getRange(rn, 2, 1, 2).setValues([[nama, usernameAkhir]]);
+          sheet.getRange(rn, 7, 1, 3).setValues([[nis, kelas.jenjangId, kelas.id]]);
+          if (noHP) sheet.getRange(rn, 13).setValue(noHP); // hanya timpa bila diisi
+          if (password) sheet.getRange(rn, 4, 1, 2).setValues([[hashU, saltU]]);
+        } else {
+          // Masih antre di batch ini -> update matrix-nya saja
+          var br = antreBaru[adaNis.antreIdx];
+          br[1] = nama; br[2] = usernameAkhir;
+          br[7] = nis; br[8] = kelas.jenjangId; br[9] = kelas.id;
+          if (noHP) br[12] = noHP;
+          if (password) { br[3] = hashU; br[4] = saltU; }
+        }
+        petaUsername[unKey] = asString(adaNis.row[0]);
         hasil.updated++;
       } else {
-        if (duplikat) {
+        if (idPemilikUsername) {
           hasil.errors.push({ baris: baris, pesan: 'Username "' + usernameAkhir + '" sudah dipakai.' });
           continue;
         }
         var salt = Utilities.getUuid();
         var passAkhir = password || nis;
-        sheet.appendRow([Utilities.getUuid(), nama, usernameAkhir,
+        var idBaru = Utilities.getUuid();
+        var idxBaru = antreBaru.length;
+        antreBaru.push([idBaru, nama, usernameAkhir,
           hashPassword(passAkhir, salt), salt, 'siswa',
           nis, kelas.jenjangId, kelas.id, '', '', 1, noHP]);
+        petaNis[nisKey] = { rowNum: -1, antreIdx: idxBaru, row: [idBaru] };
+        petaUsername[unKey] = idBaru;
         hasil.imported++;
       }
+    }
+    // Tulis batch SEKALIGUS (jauh lebih cepat dari 1000x appendRow)
+    if (antreBaru.length > 0) {
+      sheet.getRange(sheet.getLastRow() + 1, 1, antreBaru.length, 13).setValues(antreBaru);
     }
     return {
       success: true,
