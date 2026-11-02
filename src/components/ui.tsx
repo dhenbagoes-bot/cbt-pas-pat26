@@ -338,7 +338,7 @@ export function KopCetak({
           <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-slate-100 text-3xl">🧩</div>
         )}
         <div className="flex-1 text-center">
-          <h2 className="text-lg font-bold uppercase text-slate-900">{namaSekolah || 'TTS Madrasah'}</h2>
+          <h2 className="text-lg font-bold uppercase text-slate-900">{namaSekolah || 'Sekolah'}</h2>
           {alamat && <p className="text-xs text-slate-600">{alamat}</p>}
           {telepon && <p className="text-xs text-slate-600">Telp: {telepon}</p>}
         </div>
@@ -358,7 +358,7 @@ export function TtdCetak({ namaKepala, kota = '' }: { namaKepala?: string; kota?
     <div className="mt-8 flex justify-end">
       <div className="w-56 text-center text-sm text-slate-800">
         <p>{kota ? `${kota}, ` : ''}{hariIni}</p>
-        <p>Kepala Madrasah</p>
+        <p>Kepala Sekolah</p>
         <div className="h-16" />
         <p className="font-bold underline">{namaKepala || '( .................................... )'}</p>
       </div>

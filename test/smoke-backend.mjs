@@ -236,7 +236,7 @@ eq(sheetRows('LogAktivitas')[0], ['ID', 'Waktu', 'Username', 'SesiID', 'Jenis', 
 {
   const get = (k) => { const f = sheetRows('Pengaturan').find((x) => x[0] === k); return f ? f[1] : undefined; };
   eq([get('namaSekolah'), get('ambangPeringatan'), get('wajibFullscreen'), get('izinkanUlangSetelahBatal'), get('logoUrl'), get('kkm'), get('waAktif'), get('waEndpoint'), get('waApiKey')],
-    ['Madrasah Contoh', '3', '1', '0', '', '75', 'false', '', ''], 'seed 13 kunci pengaturan sesuai kontrak');
+    ['Sekolah Contoh', '3', '1', '0', '', '75', 'false', '', ''], 'seed 13 kunci pengaturan sesuai kontrak');
   ok((get('waTemplateProgres') || '').includes('{nama}') && (get('waTemplateProgres') || '').includes('{mapelLemah}'), 'seed template WA berisi placeholder');
   const jenjang = sheetRows('Jenjang').slice(1).map((x) => x[1]);
   eq(jenjang, ['MTs/SMP', 'MA/SMA/SMK'], 'seed 2 jenjang');
@@ -261,8 +261,8 @@ eq(sheetRows('Pengaturan').filter((x) => x[0] === 'namaSekolah').length, 1, 'kun
 
 console.log('\n[2] ping, doGet, aksi tak dikenal, LockService v1.1.0 (fine-grained)');
 r = post('ping');
-ok(r.success && r.data.version === '1.1.0' && !!r.data.waktu, 'ping -> version + waktu');
-eq(getRaw(), { success: true, data: { service: 'wwn-cbt-atm-80', version: '1.1.0' } }, 'doGet -> info service');
+ok(r.success && r.data.version === '1.1.2' && !!r.data.waktu, 'ping -> version + waktu');
+eq(getRaw(), { success: true, data: { service: 'wwn-cbt-atm-80', version: '1.1.2' } }, 'doGet -> info service');
 r = post('aksiTakDikenal');
 ok(!r.success && r.message === 'Aksi tidak dikenal: aksiTakDikenal', 'aksi tak dikenal -> message sesuai kontrak');
 // v1.1.0: kunci global dihapus — aksi BACA tidak boleh menyentuh LockService sama sekali

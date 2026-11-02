@@ -2,7 +2,7 @@
 
 export type Peran = 'admin' | 'guru' | 'siswa';
 
-/** Pengaturan madrasah (wire: angka untuk flag; wa* berupa string). */
+/** Pengaturan sekolah (wire: angka untuk flag; wa* berupa string). */
 export interface Pengaturan {
   namaSekolah: string;
   alamatSekolah: string;

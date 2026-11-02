@@ -63,7 +63,7 @@
  *    SEGERA ganti kata sandi setelah inisialisasi!
  */
 
-var APP_VERSION = '1.1.0';
+var APP_VERSION = '1.1.2';
 
 // ============================================================
 // KONFIGURASI SHEET (satu sumber kebenaran untuk nama & header)
@@ -109,7 +109,7 @@ HEADERS[SHEET_NOTIFIKASI] = ['ID', 'Waktu', 'Username', 'NamaSiswa', 'NoHP',
   'Jenis', 'Isi', 'Status'];
 
 var DEFAULT_PENGATURAN = [
-  ['namaSekolah', 'Madrasah Contoh'],
+  ['namaSekolah', 'Sekolah Contoh'],
   ['alamatSekolah', ''],
   ['telepon', ''],
   ['namaKepala', ''],

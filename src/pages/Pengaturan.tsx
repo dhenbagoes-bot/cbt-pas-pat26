@@ -68,12 +68,12 @@ export default function Pengaturan({ pengaturan, toast, refreshData, pindah }: P
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader judul="Pengaturan" subjudul="Identitas madrasah & aturan ujian." />
+      <PageHeader judul="Pengaturan" subjudul="Identitas & aturan ujian." />
 
       <Card className="mb-4">
-        <h2 className="mb-3 font-bold text-slate-900">Identitas Madrasah</h2>
+        <h2 className="mb-3 font-bold text-slate-900">Identitas</h2>
         <div className="space-y-4">
-          <Field label="Nama madrasah">
+          <Field label="Nama sekolah">
             <TextInput value={form.namaSekolah} onChange={(e) => ubah('namaSekolah', e.target.value)} />
           </Field>
           <Field label="Alamat">
@@ -83,12 +83,12 @@ export default function Pengaturan({ pengaturan, toast, refreshData, pindah }: P
             <Field label="Telepon">
               <TextInput value={form.telepon} onChange={(e) => ubah('telepon', e.target.value)} />
             </Field>
-            <Field label="Nama kepala madrasah">
+            <Field label="Nama kepala sekolah">
               <TextInput value={form.namaKepala} onChange={(e) => ubah('namaKepala', e.target.value)} />
             </Field>
           </div>
           <div>
-            <span className="mb-1.5 block text-sm font-semibold text-slate-700">Logo madrasah</span>
+            <span className="mb-1.5 block text-sm font-semibold text-slate-700">Logo sekolah</span>
             <div className="flex items-center gap-3">
               {form.logoUrl ? (
                 <img src={form.logoUrl} alt="Logo" className="h-16 w-16 rounded-xl border object-contain" />

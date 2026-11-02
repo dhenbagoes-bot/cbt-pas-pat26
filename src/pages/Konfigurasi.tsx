@@ -28,7 +28,7 @@ export default function Konfigurasi({ toast, sekolah, daftarSekolah, onGantiSeko
     }
     setApiUrl(u);
     await onApiUrlChange(u);
-    toast(u ? 'URL backend manual disimpan.' : 'Override URL dihapus; memakai URL madrasah.', 'sukses');
+    toast(u ? 'URL backend manual disimpan.' : 'Override URL dihapus; memakai URL sekolah.', 'sukses');
   };
 
   const ujiKoneksi = async () => {
@@ -63,10 +63,10 @@ export default function Konfigurasi({ toast, sekolah, daftarSekolah, onGantiSeko
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader judul="Konfigurasi" subjudul="Pilih madrasah & hubungkan ke backend Google Apps Script." />
+      <PageHeader judul="Konfigurasi" subjudul="Pilih sekolah & hubungkan ke backend Google Apps Script." />
 
       <Card className="mb-4">
-        <h2 className="mb-3 font-bold text-slate-900">Madrasah Aktif</h2>
+        <h2 className="mb-3 font-bold text-slate-900">Sekolah Aktif</h2>
         <div className="space-y-2">
           {daftarSekolah.map((s) => (
             <button
@@ -84,7 +84,7 @@ export default function Konfigurasi({ toast, sekolah, daftarSekolah, onGantiSeko
             </button>
           ))}
           {daftarSekolah.length === 0 && (
-            <p className="text-sm text-slate-500">Belum ada madrasah di <code>public/schools.json</code>.</p>
+            <p className="text-sm text-slate-500">Belum ada sekolah di <code>public/schools.json</code>.</p>
           )}
         </div>
       </Card>
@@ -93,7 +93,7 @@ export default function Konfigurasi({ toast, sekolah, daftarSekolah, onGantiSeko
         <h2 className="mb-3 flex items-center gap-2 font-bold text-slate-900">
           <Link2 className="h-5 w-5 text-violet-600" /> URL Backend Manual
         </h2>
-        <Field label="URL /exec Apps Script (opsional — menimpa URL madrasah)">
+        <Field label="URL /exec Apps Script (opsional — menimpa URL sekolah)">
           <TextInput
             value={urlManual}
             onChange={(e) => setUrlManual(e.target.value)}

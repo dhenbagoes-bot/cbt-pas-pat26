@@ -137,7 +137,7 @@ export function Layout({
               <button
                 onClick={() => setPickerBuka(true)}
                 className="block max-w-full truncate text-left text-sm font-bold leading-tight hover:underline sm:text-base"
-                title="Ganti madrasah"
+                title="Ganti sekolah"
               >
                 {namaSekolah || sekolah?.nama || 'CBT Try Out TKA'} ▾
               </button>
@@ -286,13 +286,13 @@ export function Layout({
         </div>
       )}
 
-      {/* ===== Pemilih madrasah ===== */}
+      {/* ===== Pemilih sekolah ===== */}
       {pickerBuka && !modeUjian && (
-        <Modal judul="Pilih Madrasah" onTutup={() => setPickerBuka(false)} lebar="max-w-md">
+        <Modal judul="Pilih Sekolah" onTutup={() => setPickerBuka(false)} lebar="max-w-md">
           <div className="space-y-2">
             {daftarSekolah.length === 0 && (
               <p className="text-sm text-slate-500">
-                Belum ada madrasah terdaftar. Tambahkan di <code>public/schools.json</code> atau atur URL backend
+                Belum ada sekolah terdaftar. Tambahkan di <code>public/schools.json</code> atau atur URL backend
                 manual di menu Konfigurasi.
               </p>
             )}
