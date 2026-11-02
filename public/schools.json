@@ -1,1 +1,14 @@
-[{"apiUrl":"","id":"mts-al-islam-ngleses","kota":"Juwangi","nama":"MTs AL ISLAM NGLESES"}]
+[
+  {
+    "apiUrl": "",
+    "id": "mts-al-islam-ngleses",
+    "kota": "Juwangi",
+    "nama": "MTs AL ISLAM NGLESES"
+  },
+  {
+    "id": "smk-negeri-juwangi",
+    "nama": "SMK NEGERI JUWANGI",
+    "kota": "Juwangi",
+    "apiUrl": "https://script.google.com/macros/s/AKfycbyfi6DDgJC-QNBPIpj7ekjjKQdyoMhA--7FPCu6o2Qg40hk9suLkJBipM5019EfrV0-/exec"
+  }
+]

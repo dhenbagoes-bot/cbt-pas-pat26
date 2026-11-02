@@ -1,4 +1,4 @@
-# CBT Sekolah Digital — `wwn-cbt-atm-80` v1.1.2
+# CBT Sekolah Digital — `wwn-cbt-atm-80` v1.1.3
 
 Aplikasi ujian digital (CBT) untuk madrasah/sekolah.
 Siswa mengerjakan try out langsung dari browser (laptop & HP), guru mengelola bank soal &
